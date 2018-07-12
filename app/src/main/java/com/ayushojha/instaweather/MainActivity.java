@@ -1,14 +1,12 @@
 package com.ayushojha.instaweather;
 
 import android.Manifest;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -19,21 +17,14 @@ import android.widget.TextView;
 import com.ayushojha.instaweather.common.APIHandler;
 import com.ayushojha.instaweather.helper.Helper;
 import com.ayushojha.instaweather.model.OpenWeatherMap;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.squareup.picasso.Picasso;
-
-import java.lang.reflect.Type;
 
 public class MainActivity extends AppCompatActivity implements LocationListener{
 
-        TextView textCity, textLastUpdate, textWeatherDesc, textHumidity, textTime, textTemp;
-        ImageView iconWeather;
+        TextView textCity, textLastUpdate, textWeatherDesc, textHumidity, textTime, textTemp, textIcon;
 
         LocationManager locationManager;
         String provider;
         static double lat, lng;
-        OpenWeatherMap openWeatherMap = new OpenWeatherMap();
 
         int MY_PERMISSION = 0;
 
@@ -49,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
             textHumidity = (TextView) findViewById(R.id.textHumidity);
             textTime = (TextView) findViewById(R.id.textTime);
             textTemp = (TextView) findViewById(R.id.textTemp);
-            iconWeather = (ImageView) findViewById(R.id.iconWeather);
+            textIcon = (TextView) findViewById(R.id.textIcon);
 
 
             //Get Coordinates
@@ -116,23 +107,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
             lat = location.getLatitude();
             lng = location.getLongitude();
 
-            new GetWeather().execute(APIHandler.apiRequest(String.valueOf(lat),String.valueOf(lng)));
+           //new GetWeather().execute(APIHandler.apiRequest(String.valueOf(lat),String.valueOf(lng)));
         }
 
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-
-        }
 
         
     }
