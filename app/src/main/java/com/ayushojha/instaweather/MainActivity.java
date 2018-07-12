@@ -134,53 +134,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
 
         }
 
-        private class GetWeather extends AsyncTask<String,Void,String> {
-            ProgressDialog pd = new ProgressDialog(MainActivity.this);
-
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                pd.setTitle("Please wait...");
-                pd.show();
-
-            }
-
-
-            @Override
-            protected String doInBackground(String... params) {
-                String stream = null;
-                String urlString = params[0];
-
-                Helper http = new Helper();
-                stream = http.getHTTPData(urlString);
-                return stream;
-            }
-
-            @Override
-            protected void onPostExecute(String s) {
-                super.onPostExecute(s);
-                if(s.contains("Error: Not found city")){
-                    pd.dismiss();
-                    return;
-                }
-                Gson gson = new Gson();
-                Type mType = new TypeToken<OpenWeatherMap>(){}.getType();
-                openWeatherMap = gson.fromJson(s,mType);
-                pd.dismiss();
-
-                textCity.setText(String.format("%s,%s",openWeatherMap.getName(),openWeatherMap.getSys().getCountry()));
-                textLastUpdate.setText(String.format("Last Updated: %s", APIHandler.getDateNow()));
-                textWeatherDesc.setText(String.format("%s",openWeatherMap.getWeather().get(0).getDescription()));
-                textHumidity.setText(String.format("%d%%",openWeatherMap.getMain().getHumidity()));
-                textTime.setText(String.format("%s/%s",APIHandler.unixTimeStampToDateTime(openWeatherMap.getSys().getSunrise()),APIHandler.unixTimeStampToDateTime(openWeatherMap.getSys().getSunset())));
-                textTemp.setText(String.format("%.2f °C",openWeatherMap.getMain().getTemp()));
-                Picasso.get()
-                        .load(APIHandler.getImage(openWeatherMap.getWeather().get(0).getIcon()))
-                        .into(iconWeather);
-
-            }
-
-        }
+        
     }
 
