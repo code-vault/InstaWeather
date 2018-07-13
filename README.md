@@ -1,2 +1,2 @@
 # InstaWeather
-A Project to tell the weather of a place based on the location and also the places of user's choice.
+A Project to tell the weather of a location based on the location of the user and also the locations of user's choice.
