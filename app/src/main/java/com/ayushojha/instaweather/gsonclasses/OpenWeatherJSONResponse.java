@@ -5,7 +5,7 @@ import java.util.List;
 public class OpenWeatherJSONResponse {
 
    private Coord coord;
-   private List<Weather> weathers;
+   private List<Weather> weather;
    private String base;
    private Main main;
    private Wind wind;
@@ -16,9 +16,9 @@ public class OpenWeatherJSONResponse {
    private String name;
    private int cod;
 
-    public OpenWeatherJSONResponse(Coord coord, List<Weather> weathers, String base, Main main, Wind wind, Clouds clouds, double dt, Sys sys, double id, String name, int cod) {
+    public OpenWeatherJSONResponse(Coord coord, List<Weather> weather, String base, Main main, Wind wind, Clouds clouds, double dt, Sys sys, double id, String name, int cod) {
         this.coord = coord;
-        this.weathers = weathers;
+        this.weather = weather;
         this.base = base;
         this.main = main;
         this.wind = wind;
@@ -38,12 +38,12 @@ public class OpenWeatherJSONResponse {
         this.coord = coord;
     }
 
-    public List<Weather> getWeathers() {
-        return weathers;
+    public List<Weather> getWeather() {
+        return weather;
     }
 
-    public void setWeathers(List<Weather> weathers) {
-        this.weathers = weathers;
+    public void setWeather(List<Weather> weather) {
+        this.weather = weather;
     }
 
     public String getBase() {
