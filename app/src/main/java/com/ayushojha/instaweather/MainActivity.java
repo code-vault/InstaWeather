@@ -1,116 +1,56 @@
 package com.ayushojha.instaweather;
 
-import android.Manifest;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.ayushojha.instaweather.common.APIHandler;
-import com.ayushojha.instaweather.helper.Helper;
-import com.ayushojha.instaweather.model.OpenWeatherMap;
+import com.ayushojha.instaweather.gsonclasses.OpenWeatherJSONResponse;
+import com.ayushojha.instaweather.util.OpenWeatherAPIHandler;
+import com.google.gson.Gson;
 
-public class MainActivity extends AppCompatActivity implements LocationListener{
+public class MainActivity extends AppCompatActivity{
+    TextView textCity, textTime, textIcon, textTemp, textWeatherDesc,textHumidity, textWindSpeed, textPressure;
+    double lat = 26.8177, lon =82.7633;
 
-        TextView textCity, textLastUpdate, textWeatherDesc, textHumidity, textTime, textTemp, textIcon;
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getSupportActionBar().hide();
+        setContentView(R.layout.activity_main);
+        textCity = findViewById(R.id.textCity);
+        textTime = findViewById(R.id.textTime);
+        textIcon = findViewById(R.id.textIcon);
+        textTemp = findViewById(R.id.textTemp);
+        textWeatherDesc = findViewById(R.id.textWeatherDesc);
+        textWindSpeed = findViewById(R.id.textWindSpeed);
+        textPressure = findViewById(R.id.textPresure);
+        new GetWeather().execute(OpenWeatherAPIHandler.getAPIRequest(String.valueOf(lat), String.valueOf(lon)));
 
-        LocationManager locationManager;
-        String provider;
-        static double lat, lng;
-
-        int MY_PERMISSION = 0;
-
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_main);
-
-            //Control
-            textCity = (TextView) findViewById(R.id.textCity);
-            //txtLastUpdate = (TextView) findViewById(R.id.textLastUpdate);
-            textWeatherDesc = (TextView) findViewById(R.id.textWeatherDesc);
-            textHumidity = (TextView) findViewById(R.id.textHumidity);
-            textTime = (TextView) findViewById(R.id.textTime);
-            textTemp = (TextView) findViewById(R.id.textTemp);
-            textIcon = (TextView) findViewById(R.id.textIcon);
-
-
-            //Get Coordinates
-            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            provider = locationManager.getBestProvider(new Criteria(), false);
-
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{
-                        Manifest.permission.INTERNET,
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_NETWORK_STATE,
-                        Manifest.permission.SYSTEM_ALERT_WINDOW,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-
-
-                }, MY_PERMISSION);
-            }
-            Location location = locationManager.getLastKnownLocation(provider);
-            if (location == null)
-                Log.e("TAG","No Location");
-        }
-
-        @Override
-        protected void onPause() {
-            super.onPause();
-            if (ActivityCompat.checkSelfPermission(                                                                                                                                                                this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{
-                        Manifest.permission.INTERNET,
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_NETWORK_STATE,
-                        Manifest.permission.SYSTEM_ALERT_WINDOW,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-
-
-                }, MY_PERMISSION);
-            }
-            locationManager.removeUpdates(this);
-        }
-
-        @Override
-        protected void onResume() {
-            super.onResume();
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{
-                        Manifest.permission.INTERNET,
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_NETWORK_STATE,
-                        Manifest.permission.SYSTEM_ALERT_WINDOW,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-
-
-                }, MY_PERMISSION);
-            }
-            locationManager.requestLocationUpdates(provider, 400, 1, this);
-        }
-
-        @Override
-        public void onLocationChanged(Location location) {
-            lat = location.getLatitude();
-            lng = location.getLongitude();
-
-           //new GetWeather().execute(APIHandler.apiRequest(String.valueOf(lat),String.valueOf(lng)));
-        }
-
-
-        
     }
+
+    public class GetWeather extends AsyncTask<String, Void, String> {
+        OpenWeatherAPIHandler handler;
+        OpenWeatherJSONResponse response;
+        @Override
+        protected String doInBackground(String... params) {
+            handler = new OpenWeatherAPIHandler();
+            String httpData = handler.getJSONString(params[0]);
+            return httpData;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            Gson gson = new Gson();
+            response = gson.fromJson(s,OpenWeatherJSONResponse.class);
+            textCity.setText(response.getName().toUpperCase());
+            textHumidity.setText(response.getMain().getHumidity());
+            textTemp.setText(String.valueOf((response.getMain().getTemp())));
+            textPressure.setText(String.valueOf(response.getMain().getPressure()));
+            textWeatherDesc.setText(response.getWeathers().get(0).getDescription().toUpperCase());
+        }
+    }
+}
 
