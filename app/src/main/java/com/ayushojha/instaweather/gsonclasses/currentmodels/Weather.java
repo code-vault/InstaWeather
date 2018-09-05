@@ -1,18 +1,24 @@
-package com.ayushojha.instaweather.gsonclasses;
+
+package com.ayushojha.instaweather.gsonclasses.currentmodels;
+
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class Weather {
 
+    @SerializedName("id")
+    @Expose
     private int id;
+    @SerializedName("main")
+    @Expose
     private String main;
+    @SerializedName("description")
+    @Expose
     private String description;
+    @SerializedName("icon")
+    @Expose
     private String icon;
-
-    public Weather(int id, String main, String description, String icon) {
-        this.id = id;
-        this.main = main;
-        this.description = description;
-        this.icon = icon;
-    }
 
     public int getId() {
         return id;
@@ -45,4 +51,10 @@ public class Weather {
     public void setIcon(String icon) {
         this.icon = icon;
     }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this).append("id", id).append("main", main).append("description", description).append("icon", icon).toString();
+    }
+
 }

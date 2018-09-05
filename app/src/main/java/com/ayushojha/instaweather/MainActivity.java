@@ -1,180 +1,181 @@
 package com.ayushojha.instaweather;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
+import android.app.ProgressDialog;
+import android.graphics.Color;
 import android.graphics.Typeface;
-import android.location.Location;
-import android.os.AsyncTask;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import android.os.Handler;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.widget.ImageView;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.ayushojha.instaweather.gsonclasses.OpenWeatherJSONResponse;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
+import com.ayushojha.instaweather.gsonclasses.currentmodels.CurrentWeatherRootGson;
+import com.ayushojha.instaweather.gsonclasses.forecastmodels.ForecastWeatherRootGson;
 import com.ayushojha.instaweather.util.OpenWeatherAPIHandler;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
-import com.squareup.picasso.Picasso;
+import com.google.gson.GsonBuilder;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 public class MainActivity extends AppCompatActivity {
-    TextView textCity, textTime, textIcon, textTemp, textWeatherDesc, textHumidity, textWindSpeed, textPressure;
-    ImageView imgIcon;
-    double lat, lon;
-    Typeface weatherFont;
-
-    FusedLocationProviderClient client;
-    static final int MY_FINE_LOCATION_REQUEST = 101;
-    LocationRequest locationRequest;
-    LocationCallback locationCallback;
+    private Typeface weatherFont;
+    private FusedLocationProviderClient client;
+    public final int MY_FINE_LOCATION_REQUEST = 101;
+    private LocationCallback locationCallback;
+    private LocationRequest locationRequest;
+    private String mCurrentResponse, mForecastResponse;
+    private CurrentWeatherRootGson currentGson;
+    private ForecastWeatherRootGson forecastGson;
+    private Toolbar toolbar;
+    private Bundle bundle;
+    private Handler handler;
+    private ProgressDialog progressDialog;
+    private TextView city, temperature, humidity, pressure, windSpeed, weatherIcon, description, lastUpdate, humidityIcon, pressureIcon, windIcon;
+    private double mLat, mLon;
+    private String country, state, place, district;
+    private RequestQueue queue;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 
-        weatherFont = Typeface.createFromAsset(getApplicationContext().getAssets(), "fonts/weathericons-regular-webfont.ttf");
+        houseKeeping();
+        createGsons(mCurrentResponse, mForecastResponse);
+        updateTodayUI();
 
-        textCity = findViewById(R.id.textCity);
-        textTime = findViewById(R.id.textTime);
-//        textIcon = findViewById(R.id.textIcon);
-        textTemp = findViewById(R.id.textTemp);
-        textWeatherDesc = findViewById(R.id.textWeatherDesc);
-        textWindSpeed = findViewById(R.id.textWindSpeed);
-        textPressure = findViewById(R.id.textPresure);
-        textHumidity = findViewById(R.id.textHumidity);
-//        textIcon = findViewById(R.id.textIcon);
-//        textIcon.setTypeface(weatherFont);
-        imgIcon = findViewById(R.id.imgIcon);
+    }
 
-        locationRequest = new LocationRequest();
-        locationRequest.setInterval(7500); //should use 15000
-        locationRequest.setFastestInterval(5000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+    private void createGsons(String currentResponse, String forecastResponse) {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        Gson gson = gsonBuilder.create();
+        currentGson = gson.fromJson(mCurrentResponse, CurrentWeatherRootGson.class);
+        forecastGson = gson.fromJson(mForecastResponse, ForecastWeatherRootGson.class);
+    }
 
-        client = LocationServices.getFusedLocationProviderClient(this);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            client.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    if (location != null) {
-                        lat = location.getLatitude();
-                        lon = location.getLongitude();
-                        new GetWeather().execute(OpenWeatherAPIHandler.getAPIRequest(String.valueOf(lat), String.valueOf(lon)));
-                        Log.d("APIRequest", OpenWeatherAPIHandler.getAPIRequest(String.valueOf(lat), String.valueOf(lon)));
-                    }
-                }
-            });
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_FINE_LOCATION_REQUEST);
-        }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        MenuItem searchItem = menu.findItem(R.id.menu_search);
+        SearchView searchView = ((SearchView) searchItem.getActionView());
+        searchView.setQueryHint("Seach weather for a location..");
+        return true;
+    }
 
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                super.onLocationResult(locationResult);
-                for (Location location : locationResult.getLocations()) {
-                    //update the user interface with user data
-                    if (location != null) {
-                        lat = location.getLatitude();
-                        lon = location.getLongitude();
-                        new GetWeather().execute(OpenWeatherAPIHandler.getAPIRequest(String.valueOf(lat), String.valueOf(lon)));
-                        Log.d("APIRequest", OpenWeatherAPIHandler.getAPIRequest(String.valueOf(lat), String.valueOf(lon)));
-                    }
-                }
-            }
-        };
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
     }
 
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    private void updateTodayUI() {
+        place = (district == null) ? currentGson.getName() : district;
+        city.setText(place + ", " + country);
+        temperature.setText(format(currentGson.getMain().getTemp()) + "°C");
+        pressure.setText(format(currentGson.getMain().getPressure()) +"kPa");
+        windSpeed.setText(format(currentGson.getWind().getSpeed()) +"m/s");
+        description.setText(currentGson.getWeather().get(0).getDescription().toUpperCase());
+        humidity.setText(format(currentGson.getMain().getHumidity()) +"%");
 
-        switch (requestCode) {
-            case MY_FINE_LOCATION_REQUEST:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    //permission granted
-                } else {
-                    Toast.makeText(getApplicationContext(), "This app needs location permisson to work.", Toast.LENGTH_LONG).show();
-                    finish();
-                }
+        DateTime apiDate = new DateTime(currentGson.getDt() * 1000);
+//        Log.d("DATE", apiDate.toString(DateTimeFormat.longDateTime()));
+
+        DateTime sysDate = new DateTime();
+        DateTime date = sysDate.getMillis() - apiDate.getMillis() > 300000 ? sysDate : apiDate;
+        lastUpdate.setText(date.toString(DateTimeFormat.forPattern("MMM dd, yyyy hh:mm a z")));
+        int weatherId = currentGson.getWeather().get(0).getId();
+        long sunRise = currentGson.getSys().getSunrise();
+        long sunSet = currentGson.getSys().getSunset();
+        String icon = "";
+        switch (weatherId) {
+            case 701:
+                weatherIcon.setText(R.string.wi_dust);
                 break;
+            case 731:
+                weatherIcon.setText(R.string.wi_sandstorm);
+                break;
+            case 751:
+                weatherIcon.setText(R.string.wi_sandstorm);
+                break;
+            case 761:
+                weatherIcon.setText(R.string.wi_dust);
+                break;
+            case 762:
+                weatherIcon.setText(R.string.wi_volcano);
+                break;
+            default:
+                icon = OpenWeatherAPIHandler.setWeatherIcon(weatherId, sunRise, sunSet);
+                int resId2 = getResources().getIdentifier(icon, "string", getPackageName());
+                weatherIcon.setText(getString(resId2));
         }
+//        Log.d("ICON", icon);
     }
 
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        startLocationUpdates();
+    public String format(Number n) {
+        NumberFormat format = DecimalFormat.getInstance();
+        format.setRoundingMode(RoundingMode.FLOOR);
+        format.setMinimumFractionDigits(0);
+        format.setMaximumFractionDigits(2);
+        return format.format(n);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        stopLocationUpdates();
+    private void houseKeeping() {
+        city = findViewById(R.id.city);                                            //set all views
+        temperature = findViewById(R.id.temperature);
+        humidity = findViewById(R.id.humidity);
+        pressure = findViewById(R.id.pressure);
+        description = findViewById(R.id.description);
+        windSpeed = findViewById(R.id.windSpeed);
+        weatherIcon = findViewById(R.id.weatherIcon);
+        humidityIcon = findViewById(R.id.humidityIcon);
+        pressureIcon = findViewById(R.id.pressureIcon);
+        windIcon = findViewById(R.id.windIcon);
+        lastUpdate = findViewById(R.id.lastUpdate);
+
+        Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/weathericons-regular-webfont.ttf"); //set all icons
+        weatherIcon.setTypeface(typeface);
+        humidityIcon.setTypeface(typeface);
+        pressureIcon.setTypeface(typeface);
+        windIcon.setTypeface(typeface);
+
+        toolbar = findViewById(R.id.toolbar);                                    //configure the toolbar
+        setSupportActionBar(toolbar);
+
+        progressDialog = new ProgressDialog(this);                        //configure the progress dialog
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setMessage("Refreshing weather data...");
+        progressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FFD4D9D0")));
+
+        bundle = getIntent().getExtras();                                        //get data from SplashActivity
+        mCurrentResponse = bundle.getString("CURRENT_DATA");
+        Log.d("CURRENT_DATA", mCurrentResponse);
+        mForecastResponse = bundle.getString("FORECAST_DATA");
+//        Log.d("FORECAST_DATA", mForecastResponse);
+        country = bundle.getString("SPLASH_COUNTRY");
+        Log.d("SPLASH_COUNTRY", country);
+        state = bundle.getString("SPLASH_STATE");
+        Log.d("SPLASH_STATE", state);
+        district = bundle.getString("SPLASH_DISTRICT");
+        Log.d("SPLASH_DISTRICT", district);
     }
 
-    private void stopLocationUpdates() {
-        client.removeLocationUpdates(locationCallback);
-    }
-
-    private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            client.requestLocationUpdates(locationRequest, locationCallback, null);
-        }
-        else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_FINE_LOCATION_REQUEST);
-        }
-    }
-
-    public class GetWeather extends AsyncTask<String, Void, String> {
-        OpenWeatherAPIHandler handler;
-        OpenWeatherJSONResponse response;
-        @Override
-        protected String doInBackground(String... params) {
-            handler = new OpenWeatherAPIHandler();
-            String httpData = handler.getJSONString(params[0]);
-            return httpData;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            DateFormat df = new SimpleDateFormat("h:mm a z");
-
-            try {
-                super.onPostExecute(s);
-                Gson gson = new Gson();
-                response = gson.fromJson(s,OpenWeatherJSONResponse.class);
-                textCity.setText(String.format("%s,%s",response.getName(),response.getSys().getCountry()));
-                //txtLastUpdate.setText(String.format("Last Updated: %s", Common.getDateNow()));
-                textWeatherDesc.setText(String.format("%s",response.getWeather().get(0).getDescription()));
-                textHumidity.setText(String.format("%d%%",response.getMain().getHumidity()));
-                textTime.setText(df.format(response.getDt()*1000));
-                textTemp.setText(String.format("%.2f °C",response.getMain().getTemp()));
-                textWindSpeed.setText(String.format("%.2f km/h",response.getWind().getSpeed()*18/5));
-                textPressure.setText(String.format("%.2f hPa", response.getMain().getPressure()));
-                //textIcon.setText(Html.fromHtml(OpenWeatherAPIHandler.setWeatherIcon(response.getWeather().get(0).getId(), (long) response.getSys().getSunrise() *1000, (long) response.getSys().getSunset()*1000)));
-
-                Picasso.get().load(OpenWeatherAPIHandler.setWeatherIcon(response.getWeather().get(0).getIcon())).into(imgIcon);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }
 

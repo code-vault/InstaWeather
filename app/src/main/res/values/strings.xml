@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">InstaWeather</string>
+    <string name="current_weather_url">http://api.openweathermap.org/data/2.5/weather\?lat=%s&amp;lon=%s&amp;units=metric&amp;appid=aca4bc37d076d794f222c64b0bdb99c1</string>
+    <string name="forecast_weather_url">http://api.openweathermap.org/data/2.5/forecast\?lat=%s&amp;lon=%s&amp;units=metric&amp;appid=92e5d9f7cf021d14bf8c56886705e71a</string>
 </resources>
