@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
@@ -15,15 +14,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
 import com.ayushojha.instaweather.gsonclasses.currentmodels.CurrentWeatherRootGson;
 import com.ayushojha.instaweather.gsonclasses.forecastmodels.ForecastWeatherRootGson;
 import com.ayushojha.instaweather.util.OpenWeatherAPIHandler;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -35,22 +28,14 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 public class MainActivity extends AppCompatActivity {
-    private Typeface weatherFont;
-    private FusedLocationProviderClient client;
-    public final int MY_FINE_LOCATION_REQUEST = 101;
-    private LocationCallback locationCallback;
-    private LocationRequest locationRequest;
     private String mCurrentResponse, mForecastResponse;
     private CurrentWeatherRootGson currentGson;
     private ForecastWeatherRootGson forecastGson;
     private Toolbar toolbar;
     private Bundle bundle;
-    private Handler handler;
     private ProgressDialog progressDialog;
     private TextView city, temperature, humidity, pressure, windSpeed, weatherIcon, description, lastUpdate, humidityIcon, pressureIcon, windIcon;
-    private double mLat, mLon;
     private String country, state, place, district;
-    private RequestQueue queue;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
