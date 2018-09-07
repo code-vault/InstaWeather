@@ -3,7 +3,7 @@ package com.ayushojha.instaweather.gsonclasses.currentmodels;
 
 import java.util.List;
 
-import com.ayushojha.instaweather.gsonclasses.forecastmodels.Rain;
+import com.ayushojha.instaweather.gsonclasses.currentmodels.Rain;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.builder.ToStringBuilder;
