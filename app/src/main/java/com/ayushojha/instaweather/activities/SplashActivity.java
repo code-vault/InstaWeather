@@ -1,4 +1,4 @@
-package com.ayushojha.instaweather;
+package com.ayushojha.instaweather.activities;
 
 import android.Manifest;
 import android.content.Intent;
@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -21,6 +22,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.ayushojha.instaweather.R;
 import com.ayushojha.instaweather.util.OpenWeatherAPIHandler;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -67,8 +69,8 @@ public class SplashActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess(Location location) {
                     if (location != null) {
-//                        sLat = location.getLatitude();
-//                        sLon = location.getLongitude();
+                        sLat = location.getLatitude();
+                        sLon = location.getLongitude();
                         progressBar.setVisibility(View.VISIBLE);
                         makeRequests();
                     }
@@ -121,10 +123,12 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             public void onResponse(String response) {
                 intent.putExtra("CURRENT_DATA", response);
+                intent.putExtra("SLAT", sLat);
+                intent.putExtra("SLON", sLon);
                 Geocoder geocoder = new Geocoder(SplashActivity.this);
                 try {
                     List<Address> addressList = geocoder.getFromLocation(sLat, sLon, 1);
-//                    Log.d("SPLASH_ADDRESS", addressList.get(0).toString());
+                    Log.d("SPLASH_ADDRESS", addressList.get(0).toString());
                     String sCountry = addressList.get(0).getCountryName();
                     String sState = addressList.get(0).getAdminArea();
                     String sDistrict = addressList.get(0).getSubAdminArea();
@@ -153,8 +157,8 @@ public class SplashActivity extends AppCompatActivity {
                         intent.putExtra("FORECAST_DATA", response);
                         progressBar.setVisibility(View.GONE);
                         loadingText.setText("Let's Go!");
-//                Log.d("SPLASH_LAT", String.valueOf(sLat));
-//                Log.d("SPLASH_LON", String.valueOf(sLon));
+                        Log.d("SPLASH_LAT", String.valueOf(sLat));
+                        Log.d("SPLASH_LON", String.valueOf(sLon));
                         startActivity(intent);
                         finish();
                     }

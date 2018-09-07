@@ -1,4 +1,4 @@
-package com.ayushojha.instaweather;
+package com.ayushojha.instaweather.activities;
 
 import android.app.ProgressDialog;
 import android.graphics.Color;
@@ -14,8 +14,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.ayushojha.instaweather.R;
 import com.ayushojha.instaweather.gsonclasses.currentmodels.CurrentWeatherRootGson;
-import com.ayushojha.instaweather.gsonclasses.forecastmodels.ForecastWeatherRootGson;
 import com.ayushojha.instaweather.util.OpenWeatherAPIHandler;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -28,9 +28,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 public class MainActivity extends AppCompatActivity {
-    private String mCurrentResponse, mForecastResponse;
+    private String mCurrentResponse;
     private CurrentWeatherRootGson currentGson;
-    private ForecastWeatherRootGson forecastGson;
     private Toolbar toolbar;
     private Bundle bundle;
     private ProgressDialog progressDialog;
@@ -43,16 +42,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         houseKeeping();
-        createGsons(mCurrentResponse, mForecastResponse);
+        createGson(mCurrentResponse);
         updateTodayUI();
-
     }
 
-    private void createGsons(String currentResponse, String forecastResponse) {
+    private void createGson(String currentResponse) {
         GsonBuilder gsonBuilder = new GsonBuilder();
         Gson gson = gsonBuilder.create();
         currentGson = gson.fromJson(mCurrentResponse, CurrentWeatherRootGson.class);
-        forecastGson = gson.fromJson(mForecastResponse, ForecastWeatherRootGson.class);
     }
 
     @Override
@@ -66,7 +63,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
+        switch (item.getItemId()) {
+            case R.id.menu_refresh:
+                updateTodayUI();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
     }
 
 
@@ -74,10 +78,10 @@ public class MainActivity extends AppCompatActivity {
         place = (district == null) ? currentGson.getName() : district;
         city.setText(place + ", " + country);
         temperature.setText(format(currentGson.getMain().getTemp()) + "°C");
-        pressure.setText(format(currentGson.getMain().getPressure()) +"kPa");
-        windSpeed.setText(format(currentGson.getWind().getSpeed()) +"m/s");
+        pressure.setText(format(currentGson.getMain().getPressure()) + " kPa");
+        windSpeed.setText(format(currentGson.getWind().getSpeed()) + " m/s");
         description.setText(currentGson.getWeather().get(0).getDescription().toUpperCase());
-        humidity.setText(format(currentGson.getMain().getHumidity()) +"%");
+        humidity.setText(format(currentGson.getMain().getHumidity()) + " %");
 
         DateTime apiDate = new DateTime(currentGson.getDt() * 1000);
 //        Log.d("DATE", apiDate.toString(DateTimeFormat.longDateTime()));
@@ -152,8 +156,6 @@ public class MainActivity extends AppCompatActivity {
         bundle = getIntent().getExtras();                                        //get data from SplashActivity
         mCurrentResponse = bundle.getString("CURRENT_DATA");
         Log.d("CURRENT_DATA", mCurrentResponse);
-        mForecastResponse = bundle.getString("FORECAST_DATA");
-//        Log.d("FORECAST_DATA", mForecastResponse);
         country = bundle.getString("SPLASH_COUNTRY");
         Log.d("SPLASH_COUNTRY", country);
         state = bundle.getString("SPLASH_STATE");
