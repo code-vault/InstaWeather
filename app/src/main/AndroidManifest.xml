@@ -14,7 +14,7 @@
         android:theme="@style/AppTheme.Light.NoActionBar">
         <meta-data
             android:name="com.google.android.awareness.API_KEY"
-            android:value="AIzaSyC20Y1CEi_82Si_C2uMLTgoUwPN-1WZ3Aw"/>
+            android:value="AIzaSyBG6GEWb0xxffuECC-5MFHl2f7olUuRgH4"/>
         <activity
             android:name=".activities.SplashActivity"
             android:noHistory="true"
