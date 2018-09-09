@@ -1,31 +1,52 @@
 package com.ayushojha.instaweather.activities;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.ayushojha.instaweather.R;
 import com.ayushojha.instaweather.gsonclasses.currentmodels.CurrentWeatherRootGson;
 import com.ayushojha.instaweather.util.OpenWeatherAPIHandler;
+import com.google.android.gms.awareness.Awareness;
+import com.google.android.gms.awareness.snapshot.WeatherResult;
+import com.google.android.gms.awareness.state.Weather;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
+import java.io.IOException;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private String mCurrentResponse;
@@ -33,14 +54,28 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private Bundle bundle;
     private ProgressDialog progressDialog;
-    private TextView city, temperature, humidity, pressure, windSpeed, weatherIcon, description, lastUpdate, humidityIcon, pressureIcon, windIcon;
+    private TextView city, temperature, feelTemperature, dewPointText, humidity, pressure, windSpeed, weatherIcon, description, lastUpdate, humidityIcon, pressureIcon, windIcon;
     private String country, state, place, district;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    double temp, gTemp, feelTemp, dewPoint;
+    private Handler handler;
+    private RequestQueue queue;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        handler = new Handler();
+        queue = Volley.newRequestQueue(this);
+        swipeRefreshLayout = findViewById(R.id.swipeLayout);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.d("SWIPE", "Swipe Done!");
+                updateTodayUI();
+            }
+        });
         houseKeeping();
         createGson(mCurrentResponse);
         updateTodayUI();
@@ -49,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
     private void createGson(String currentResponse) {
         GsonBuilder gsonBuilder = new GsonBuilder();
         Gson gson = gsonBuilder.create();
-        currentGson = gson.fromJson(mCurrentResponse, CurrentWeatherRootGson.class);
+        currentGson = gson.fromJson(currentResponse, CurrentWeatherRootGson.class);
     }
 
     @Override
@@ -58,6 +93,38 @@ public class MainActivity extends AppCompatActivity {
         MenuItem searchItem = menu.findItem(R.id.menu_search);
         SearchView searchView = ((SearchView) searchItem.getActionView());
         searchView.setQueryHint("Seach weather for a location..");
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(final String query) {
+                Log.d("CITY_WEATHER", getString(R.string.current_weather_city_url, query));
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        StringRequest currentReq = new StringRequest(OpenWeatherAPIHandler.makeURL(getString(R.string.current_weather_city_url), query), new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                mCurrentResponse = response;
+                                Log.d("Resp", response);
+                                createGson(mCurrentResponse);
+                                updateTodayUI();
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Toast.makeText(MainActivity.this, "Problem in fetching weather data", Toast.LENGTH_LONG);
+                            }
+                        });
+                        queue.add(currentReq);
+                    }
+                });
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
         return true;
     }
 
@@ -75,12 +142,17 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void updateTodayUI() {
-        place = (district == null) ? currentGson.getName() : district;
+        place = currentGson.getName();
         city.setText(place + ", " + country);
-        temperature.setText(format(currentGson.getMain().getTemp()) + "°C");
+        double owmTemp = currentGson.getMain().getTemp();
+        temp = Math.max(gTemp, currentGson.getMain().getTemp());
+        temperature.setText(format(temp));
+        feelTemperature.setText("Feels like " + format(feelTemp) + "°C");
+        dewPointText.setText(format(dewPoint) + "°C");
+
         pressure.setText(format(currentGson.getMain().getPressure()) + " kPa");
         windSpeed.setText(format(currentGson.getWind().getSpeed()) + " m/s");
-        description.setText(currentGson.getWeather().get(0).getDescription().toUpperCase());
+        description.setText(StringUtils.capitalize(currentGson.getWeather().get(0).getDescription()));
         humidity.setText(format(currentGson.getMain().getHumidity()) + " %");
 
         DateTime apiDate = new DateTime(currentGson.getDt() * 1000);
@@ -120,14 +192,15 @@ public class MainActivity extends AppCompatActivity {
     public String format(Number n) {
         NumberFormat format = DecimalFormat.getInstance();
         format.setRoundingMode(RoundingMode.FLOOR);
-        format.setMinimumFractionDigits(0);
-        format.setMaximumFractionDigits(2);
+        format.setMaximumFractionDigits(0);
         return format.format(n);
     }
 
     private void houseKeeping() {
         city = findViewById(R.id.city);                                            //set all views
         temperature = findViewById(R.id.temperature);
+        feelTemperature = findViewById(R.id.feelTemperature);
+        dewPointText = findViewById(R.id.dewPoint);
         humidity = findViewById(R.id.humidity);
         pressure = findViewById(R.id.pressure);
         description = findViewById(R.id.description);
@@ -158,11 +231,28 @@ public class MainActivity extends AppCompatActivity {
         Log.d("CURRENT_DATA", mCurrentResponse);
         country = bundle.getString("SPLASH_COUNTRY");
         Log.d("SPLASH_COUNTRY", country);
-        state = bundle.getString("SPLASH_STATE");
-        Log.d("SPLASH_STATE", state);
-        district = bundle.getString("SPLASH_DISTRICT");
-        Log.d("SPLASH_DISTRICT", district);
+
+        gTemp = bundle.getFloat("GTEMP");
+        feelTemp = bundle.getFloat("GFEEL_TEMP");
+        dewPoint = bundle.getFloat("GDEW_POINT");
+
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString("RES", mCurrentResponse);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        mCurrentResponse = savedInstanceState.getString("RES");
+        createGson(mCurrentResponse);
+        Log.d("Gson", currentGson.toString());
+        updateTodayUI();
+        super.onRestoreInstanceState(savedInstanceState);
+    }
 }
+
+
 

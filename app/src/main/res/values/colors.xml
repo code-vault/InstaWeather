@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#2196F3</color>
-    <color name="colorPrimaryDark">#1E88E5</color>
-    <color name="colorAccent">#1E88E5</color>
-    <color name="colorBackground">@android:color/transparent</color>
-    <color name="colorTintedBackground">#cdcdcd</color>
-    <color name="splashBackground">#ffffff</color>
-    <color name="text_light">#ffffff</color>
-    <color name="text_dark">#000000</color>
-    <color name="tab_indicator">#ffffff</color>
+    <color name="primary">#673AB7</color>
+    <color name="primary_dark">#512DA8</color>
+    <color name="primary_light">#D1C4E9</color>
+    <color name="accent">#FF5252</color>
+    <color name="primary_text">#212121</color>
+    <color name="secondary_text">#757575</color>
+    <color name="icons">#FFFFFF</color>
+    <color name="divider">#BDBDBD</color>
+    <color name="background_material_dark">#ffffff</color>
+    <color name="foreground_material_dark">#000000</color>
 </resources>

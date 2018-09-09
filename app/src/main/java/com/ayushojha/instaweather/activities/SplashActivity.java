@@ -1,6 +1,7 @@
 package com.ayushojha.instaweather.activities;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -24,6 +25,11 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.ayushojha.instaweather.R;
 import com.ayushojha.instaweather.util.OpenWeatherAPIHandler;
+import com.google.android.gms.awareness.Awareness;
+import com.google.android.gms.awareness.snapshot.WeatherResult;
+import com.google.android.gms.awareness.state.Weather;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -38,18 +44,27 @@ public class SplashActivity extends AppCompatActivity {
     private double sLat = 28.7041, sLon = 77.1025;
     private ProgressBar progressBar; //loading circle
     private TextView loadingText;
-    private FusedLocationProviderClient client;
+    private FusedLocationProviderClient locationProviderClient;
     public final int MY_FINE_LOCATION_REQUEST = 101;
     private LocationCallback locationCallback;
     private LocationRequest locationRequest;
     private RequestQueue queue;
-    Intent intent;
-    Handler handler;
+    private Weather weather;
+    private  Intent intent;
+    private  Handler handler;
+    private  GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+        client = new GoogleApiClient.Builder(this)
+                .addApi(Awareness.API)
+                .build();
+        client.connect();
+
+
 
         handler = new Handler();
         progressBar = findViewById(R.id.splashProgressBar);
@@ -63,15 +78,16 @@ public class SplashActivity extends AppCompatActivity {
         intent = new Intent(this, MainActivity.class);
         queue = Volley.newRequestQueue(this);
 
-        client = LocationServices.getFusedLocationProviderClient(this);
+        locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            client.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            progressBar.setVisibility(View.VISIBLE);
+
+            locationProviderClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
                 @Override
                 public void onSuccess(Location location) {
                     if (location != null) {
                         sLat = location.getLatitude();
                         sLon = location.getLongitude();
-                        progressBar.setVisibility(View.VISIBLE);
                         makeRequests();
                     }
                 }
@@ -108,70 +124,72 @@ public class SplashActivity extends AppCompatActivity {
 
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            client.requestLocationUpdates(locationRequest, locationCallback, null);
+            locationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_FINE_LOCATION_REQUEST);
         }
     }
 
     private void stopLocationUpdates() {
-        client.removeLocationUpdates(locationCallback);
+        locationProviderClient.removeLocationUpdates(locationCallback);
     }
 
     private void makeRequests() {
-        StringRequest currentReq = new StringRequest(OpenWeatherAPIHandler.makeURL(getString(R.string.current_weather_url), String.valueOf(sLat), String.valueOf(sLon)), new Response.Listener<String>() {
+        handler.post(new Runnable() {
+            @SuppressLint("MissingPermission")
             @Override
-            public void onResponse(String response) {
-                intent.putExtra("CURRENT_DATA", response);
-                intent.putExtra("SLAT", sLat);
-                intent.putExtra("SLON", sLon);
-                Geocoder geocoder = new Geocoder(SplashActivity.this);
-                try {
-                    List<Address> addressList = geocoder.getFromLocation(sLat, sLon, 1);
-                    Log.d("SPLASH_ADDRESS", addressList.get(0).toString());
-                    String sCountry = addressList.get(0).getCountryName();
-                    String sState = addressList.get(0).getAdminArea();
-                    String sDistrict = addressList.get(0).getSubAdminArea();
-                    intent.putExtra("SPLASH_COUNTRY", sCountry);
-                    intent.putExtra("SPLASH_STATE", sState);
-                    intent.putExtra("SPLASH_DISTRICT", sDistrict);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(SplashActivity.this, "Problem in fetching current weather data", Toast.LENGTH_LONG);
-            }
-        });
-        queue.add(currentReq);
-
-
-        StringRequest forecastReq = new StringRequest(OpenWeatherAPIHandler.makeURL(getString(R.string.current_weather_url), String.valueOf(sLat), String.valueOf(sLon)), new Response.Listener<String>() {
-            @Override
-            public void onResponse(final String response) {
-                handler.post(new Runnable() {
+            public void run() {
+                StringRequest currentReq = new StringRequest(OpenWeatherAPIHandler.makeURL(getString(R.string.current_weather_coordinate_url), String.valueOf(sLat), String.valueOf(sLon)), new Response.Listener<String>() {
                     @Override
-                    public void run() {
-                        intent.putExtra("FORECAST_DATA", response);
-                        progressBar.setVisibility(View.GONE);
-                        loadingText.setText("Let's Go!");
-                        Log.d("SPLASH_LAT", String.valueOf(sLat));
-                        Log.d("SPLASH_LON", String.valueOf(sLon));
-                        startActivity(intent);
-                        finish();
+                    public void onResponse(String response) {
+                        intent.putExtra("CURRENT_DATA", response);
+                        intent.putExtra("SLAT", sLat);
+                        intent.putExtra("SLON", sLon);
+                        Geocoder geocoder = new Geocoder(SplashActivity.this);
+                        try {
+                            List<Address> addressList = geocoder.getFromLocation(sLat, sLon, 1);
+                            Log.d("SPLASH_ADDRESS", addressList.get(0).toString());
+                            String sCountry = addressList.get(0).getCountryName();
+                            String sState = addressList.get(0).getAdminArea();
+                            String sDistrict = addressList.get(0).getSubAdminArea();
+                            intent.putExtra("SPLASH_COUNTRY", sCountry);
+                            intent.putExtra("SPLASH_STATE", sState);
+                            intent.putExtra("SPLASH_DISTRICT", sDistrict);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        Awareness.SnapshotApi.getWeather(client)
+                                .setResultCallback(new ResultCallback<WeatherResult>() {
+                                    @Override
+                                    public void onResult(@NonNull WeatherResult weatherResult) {
+                                        if (!weatherResult.getStatus().isSuccess()) {
+                                            Log.d("ERROR", "Could not get weather.");
+                                            return;
+                                        }
+                                        weather = weatherResult.getWeather();
+                                        intent.putExtra("GTEMP", weather.getTemperature(Weather.CELSIUS));
+                                        intent.putExtra("GFEEL_TEMP", weather.getFeelsLikeTemperature(Weather.CELSIUS));
+                                        intent.putExtra("GDEW_POINT", weather.getDewPoint(Weather.CELSIUS));
+                                        Log.d("GTEMP",  weather.toString());
+                                        progressBar.setVisibility(View.GONE);
+                                        loadingText.setText("Let's Go!");
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                                });
+
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(SplashActivity.this, "Problem in fetching current weather data", Toast.LENGTH_LONG);
                     }
                 });
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(SplashActivity.this, "Problem in fetching weather forecast data", Toast.LENGTH_LONG);
+                queue.add(currentReq);
+
             }
         });
-        queue.add(forecastReq);
-
     }
 
     @Override

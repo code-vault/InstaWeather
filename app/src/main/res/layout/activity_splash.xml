@@ -4,11 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.SplashActivity"
-    android:background="@color/splashBackground"
-    android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-
-
+    tools:context=".activities.SplashActivity">
     <ImageView
         android:id="@+id/logo"
         android:layout_width="200dp"
@@ -37,3 +33,11 @@
         android:textColorLink="@android:color/holo_blue_dark" />
 
 </android.widget.RelativeLayout>
+
+
+
+
+
+
+
+

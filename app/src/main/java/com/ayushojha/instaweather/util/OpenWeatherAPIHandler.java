@@ -37,6 +37,10 @@ public class OpenWeatherAPIHandler {
         return String.format(endPoint, lat, lon);
     }
 
+    public static String makeURL(String endPoint, String city) {
+        return String.format(endPoint, city);
+    }
+
 
     public static String setWeatherIcon(String iconId) {
         return String.format("https://openweathermap.org/img/w/%s.png", iconId);
@@ -51,6 +55,8 @@ public class OpenWeatherAPIHandler {
             return String.format(icon, "night", String.valueOf(weatherId));
         }
     }
+
+
 
 
 }
