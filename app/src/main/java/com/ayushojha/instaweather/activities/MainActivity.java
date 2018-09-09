@@ -74,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
             public void onRefresh() {
                 Log.d("SWIPE", "Swipe Done!");
                 updateTodayUI();
+                city.setText(place +", "+ currentGson.getSys().getCountry());
+                feelTemp = currentGson.getMain().getTemp() + 5;
+                feelTemperature.setText(format(feelTemp));
             }
         });
         houseKeeping();
@@ -106,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
                                 mCurrentResponse = response;
                                 Log.d("Resp", response);
                                 createGson(mCurrentResponse);
+
                                 updateTodayUI();
                             }
                         }, new Response.ErrorListener() {
@@ -145,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
         place = currentGson.getName();
         city.setText(place + ", " + country);
         double owmTemp = currentGson.getMain().getTemp();
-        temp = Math.max(gTemp, currentGson.getMain().getTemp());
+        temp = Math.min(gTemp, currentGson.getMain().getTemp());
         temperature.setText(format(temp));
         feelTemperature.setText("Feels like " + format(feelTemp) + "°C");
         dewPointText.setText(format(dewPoint) + "°C");
