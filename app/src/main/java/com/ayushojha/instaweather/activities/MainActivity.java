@@ -1,7 +1,7 @@
 package com.ayushojha.instaweather.activities;
 
-import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
@@ -9,8 +9,9 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
@@ -22,25 +23,24 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.ayushojha.instaweather.R;
 import com.ayushojha.instaweather.gsonclasses.currentmodels.CurrentWeatherRootGson;
 import com.ayushojha.instaweather.util.OpenWeatherAPIHandler;
-import com.google.android.gms.awareness.Awareness;
-import com.google.android.gms.awareness.snapshot.WeatherResult;
-import com.google.android.gms.awareness.state.Weather;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.math.RoundingMode;
@@ -49,7 +49,7 @@ import java.text.NumberFormat;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private String mCurrentResponse;
+    private String mCurrentResponse, address;
     private CurrentWeatherRootGson currentGson;
     private Toolbar toolbar;
     private Bundle bundle;
@@ -57,9 +57,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView city, temperature, feelTemperature, dewPointText, humidity, pressure, windSpeed, weatherIcon, description, lastUpdate, humidityIcon, pressureIcon, windIcon;
     private String country, state, place, district;
     private SwipeRefreshLayout swipeRefreshLayout;
-    double temp, gTemp, feelTemp, dewPoint;
+    double temp, gTemp, feelTemp, dewPoint, mLat, mLon;
     private Handler handler;
     private RequestQueue queue;
+    private CoordinatorLayout coordinatorLayout;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -90,8 +91,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
-        MenuItem searchItem = menu.findItem(R.id.menu_search);
-        SearchView searchView = ((SearchView) searchItem.getActionView());
+        final MenuItem searchItem = menu.findItem(R.id.menu_search);
+        final SearchView searchView = ((SearchView) searchItem.getActionView());
+        searchView.setBackgroundColor(Color.WHITE);
         searchView.setQueryHint("Seach weather for a location..");
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -107,9 +109,12 @@ public class MainActivity extends AppCompatActivity {
                                 Log.d("Resp", response);
                                 createGson(mCurrentResponse);
                                 updateTodayUI();
-                                city.setText(place +", "+ currentGson.getSys().getCountry());
                                 feelTemp = currentGson.getMain().getTemp() + 5;
-                                feelTemperature.setText("Feels like "+format(feelTemp));
+                                feelTemperature.setText("Feels like " + format(feelTemp));
+                                dewPoint = temp -7;
+                                dewPointText.setText("Dew Point  " +format(dewPoint));
+
+                                searchItem.collapseActionView();
                             }
                         }, new Response.ErrorListener() {
                             @Override
@@ -128,32 +133,68 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_refresh:
-                updateTodayUI();
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        int itemId = item.getItemId();
+        switch (itemId) {
+            case R.id.menu_about:
+                Intent intent = new Intent(this, AboutActivity.class);
+                startActivity(intent);
                 break;
-            default:
-                return super.onOptionsItemSelected(item);
+            case R.id.menu_address:
+                Log.d("MADDRESS", address);
+                coordinatorLayout = findViewById(R.id.coordinatorLayout1);
+                Snackbar snackbar1 = Snackbar.make(coordinatorLayout, address, Snackbar.LENGTH_INDEFINITE);
+                snackbar1.show();
+                break;
+            case R.id.menu_exit:
+                coordinatorLayout = findViewById(R.id.coordinatorLayout1);
+                Snackbar snackbar2 = Snackbar.make(coordinatorLayout, "Do you wanna exit the app? Swipe To Cancel", Snackbar.LENGTH_INDEFINITE).setAction("YES", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        finish();
+                        System.exit(0);
+                    }
+                });
+                snackbar2.show();
+                break;
         }
-        return true;
+        return super.onOptionsItemSelected(item);
     }
 
 
     private void updateTodayUI() {
         place = currentGson.getName();
-        city.setText(place + ", " + country);
-        double owmTemp = currentGson.getMain().getTemp();
-        temp = Math.min(gTemp, currentGson.getMain().getTemp());
-        temperature.setText(format(temp));
-        feelTemperature.setText("Feels like " + format(feelTemp) + "°C");
-        dewPointText.setText(format(dewPoint) + "°C");
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, OpenWeatherAPIHandler.makeURL(getString(R.string.country_code_url), currentGson.getSys().getCountry()), null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    country = response.getString("name");
+                    Log.d("onResponse: ", country);
+                    city.setText(place + ", " + country);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                country = country;
+                city.setText(place + ", " + country);
+            }
+        });
+        queue.add(jsonObjectRequest);
 
-        pressure.setText(format(currentGson.getMain().getPressure()) + " kPa");
+        temp = currentGson.getMain().getTemp();
+        temperature.setText(format(temp));
+        feelTemperature.setText("Feels like " + format(feelTemp));
+        dewPointText.setText("Dew Point        " + format(dewPoint));
+
+        pressure.setText(format(currentGson.getMain().getPressure()) + " hPa");
         windSpeed.setText(format(currentGson.getWind().getSpeed()) + " m/s");
         description.setText(StringUtils.capitalize(currentGson.getWeather().get(0).getDescription()));
         humidity.setText(format(currentGson.getMain().getHumidity()) + " %");
@@ -239,6 +280,17 @@ public class MainActivity extends AppCompatActivity {
         feelTemp = bundle.getFloat("GFEEL_TEMP");
         dewPoint = bundle.getFloat("GDEW_POINT");
 
+        mLat = bundle.getDouble("SLAT");
+        mLon = bundle.getDouble("SLON");
+
+        Geocoder geocoder = new Geocoder(this);
+        try {
+            List<Address> addressList = geocoder.getFromLocation(mLat, mLon, 1);
+            address = addressList.get(0).getAddressLine(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -253,9 +305,10 @@ public class MainActivity extends AppCompatActivity {
         createGson(mCurrentResponse);
         Log.d("Gson", currentGson.toString());
         updateTodayUI();
-        city.setText(place +", "+ currentGson.getSys().getCountry());
         feelTemp = currentGson.getMain().getTemp() + 5;
-        feelTemperature.setText("Feels like "+format(feelTemp));
+        feelTemperature.setText("Feels like " + format(feelTemp));
+        dewPoint = temp -7;
+        dewPointText.setText("Dew Point  " +format(dewPoint));
         super.onRestoreInstanceState(savedInstanceState);
     }
 }

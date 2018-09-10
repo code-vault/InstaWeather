@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">InstaWeather</string>
-    <string name="current_weather_coordinate_url">https://api.openweathermap.org/data/2.5/weather\?lat=%s&amp;lon=%s&amp;units=metric&amp;appid=aca4bc37d076d794f222c64b0bdb99c1</string>
+    <string name="current_weather_coordinate_url_metric">https://api.openweathermap.org/data/2.5/weather\?lat=%s&amp;lon=%s&amp;units=metric&amp;appid=aca4bc37d076d794f222c64b0bdb99c1</string>
     <string name="current_weather_city_url">https://api.openweathermap.org/data/2.5/weather\?q=%s&amp;units=metric&amp;appid=a4068d8c424b44f2f726a8bd7d5b112d</string>
+    <string name="country_code_url">https://restcountries.eu/rest/v2/alpha/%s</string>
+    <string name="about_text">Developed By: Ayush Ojha\nWeather Data: OpenWeatherMap API\nWeather Icons: Weather Icons By Erik Flowers\nApp Logo: Devarshi Ojha</string>
+    <string name="current_weather_coordinate_url_imperial">https://api.openweathermap.org/data/2.5/weather\?lat=%s&amp;lon=%s&amp;units=imperial&amp;appid=aca4bc37d076d794f222c64b0bdb99c1</string>
+
 </resources>

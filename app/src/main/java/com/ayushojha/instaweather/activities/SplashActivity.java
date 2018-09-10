@@ -139,7 +139,7 @@ public class SplashActivity extends AppCompatActivity {
             @SuppressLint("MissingPermission")
             @Override
             public void run() {
-                StringRequest currentReq = new StringRequest(OpenWeatherAPIHandler.makeURL(getString(R.string.current_weather_coordinate_url), String.valueOf(sLat), String.valueOf(sLon)), new Response.Listener<String>() {
+                StringRequest currentReq = new StringRequest(OpenWeatherAPIHandler.makeURL(getString(R.string.current_weather_coordinate_url_metric), String.valueOf(sLat), String.valueOf(sLon)), new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         intent.putExtra("CURRENT_DATA", response);

@@ -84,16 +84,13 @@
                     android:id="@+id/degreeT"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="28dp"
                     android:paddingVertical="0dp"
                     android:text="°C"
                     android:textAlignment="center"
                     android:textSize="24sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/temperature"
-                    app:layout_constraintTop_toTopOf="@+id/lastUpdate"
-                    app:layout_constraintVertical_bias="0.07" />
+                    app:layout_constraintTop_toTopOf="@+id/temperature" />
 
 
                 <TextView
@@ -109,7 +106,7 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/weatherIcon"
                     app:layout_constraintTop_toBottomOf="@+id/temperature"
-                    app:layout_constraintVertical_bias="0.0" />
+                    app:layout_constraintVertical_bias="0.07999998" />
 
 
                 <TextView
@@ -121,12 +118,25 @@
                     android:layout_marginTop="8dp"
                     android:gravity="start"
                     android:paddingVertical="0dp"
-                    android:text="Feels like 00.0°C"
+                    android:text="Feels like 00"
                     android:textSize="18sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/weatherIcon"
                     app:layout_constraintTop_toBottomOf="@+id/description"
                     app:layout_constraintVertical_bias="0.0" />
+
+                <TextView
+                    android:id="@+id/degreeFT"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:paddingVertical="0dp"
+                    android:text="°C"
+                    android:textAlignment="center"
+                    android:textSize="8sp"
+                    app:layout_constraintStart_toEndOf="@+id/feelTemperature"
+                    app:layout_constraintTop_toTopOf="@+id/feelTemperature" />
+
 
                 <TextView
                     android:id="@+id/weatherIcon"
@@ -155,30 +165,28 @@
                     android:layout_marginStart="8dp"
                     android:text="@string/wi_humidity"
                     android:textAlignment="center"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.05"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/divider"
-                    app:layout_constraintVertical_bias="0.0" />
+                    app:layout_constraintVertical_bias="0.3" />
 
 
                 <TextView
                     android:id="@+id/humidity"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:layout_marginEnd="8dp"
                     android:layout_marginStart="8dp"
                     android:text="Humidity %"
                     android:textAlignment="center"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/divider2"
                     app:layout_constraintStart_toEndOf="@+id/humidityIcon"
                     app:layout_constraintTop_toBottomOf="@+id/divider"
-                    app:layout_constraintVertical_bias="0.0" />
+                    app:layout_constraintVertical_bias="0.3" />
 
                 <TextView
                     android:id="@+id/pressureIcon"
@@ -190,78 +198,92 @@
                     android:layout_marginTop="8dp"
                     android:text="@string/wi_barometer"
                     android:textAlignment="center"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.05"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/humidityIcon"
-                    app:layout_constraintVertical_bias="0.0" />
+                    app:layout_constraintVertical_bias="0.3" />
 
 
                 <TextView
                     android:id="@+id/pressure"
-                    android:layout_width="107dp"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:layout_marginEnd="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:text="Pressure hPa"
                     android:textAlignment="center"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/divider2"
-                    app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toEndOf="@+id/pressureIcon"
                     app:layout_constraintTop_toBottomOf="@+id/humidity"
-                    app:layout_constraintVertical_bias="0.0" />
+                    app:layout_constraintVertical_bias="0.3" />
 
                 <TextView
                     android:id="@+id/windIcon"
                     android:layout_width="50dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
                     android:layout_marginStart="8dp"
                     android:text="@string/wi_strong_wind"
                     android:textAlignment="center"
-                    android:textSize="18sp"
+                    android:textSize="24sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/divider2"
-                    app:layout_constraintTop_toBottomOf="@+id/divider" />
+                    app:layout_constraintTop_toBottomOf="@+id/divider"
+                    app:layout_constraintVertical_bias="0.3" />
 
 
                 <TextView
                     android:id="@+id/windSpeed"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="8dp"
                     android:layout_marginStart="8dp"
                     android:text="Wind kph"
                     android:textAlignment="center"
-                    android:textSize="18sp"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    android:textSize="24sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/windIcon"
-                    app:layout_constraintTop_toBottomOf="@+id/divider" />
+                    app:layout_constraintTop_toBottomOf="@+id/divider"
+                    app:layout_constraintVertical_bias="0.3" />
 
                 <TextView
                     android:id="@+id/dewPoint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="8dp"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:paddingVertical="0dp"
-                    android:text="00.0°C"
+                    android:text="00"
                     android:textAlignment="center"
-                    android:textSize="18sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.68"
+                    android:textSize="24sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/divider2"
-                    app:layout_constraintTop_toBottomOf="@+id/windSpeed" />
+                    app:layout_constraintTop_toBottomOf="@+id/windSpeed"
+                    app:layout_constraintVertical_bias="0.3" />
+
+                <TextView
+                    android:id="@+id/degreeDP"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:paddingVertical="0dp"
+                    android:text="°C"
+                    android:textAlignment="center"
+                    android:textSize="8sp"
+                    app:layout_constraintStart_toEndOf="@+id/dewPoint"
+                    app:layout_constraintTop_toTopOf="@+id/dewPoint" />
+
 
                 <View
                     android:id="@+id/divider"
-                    android:layout_width="344dp"
-                    android:layout_height="1dp"
+                    android:layout_width="0dp"
+                    android:layout_height="4dp"
                     android:layout_marginBottom="8dp"
                     android:layout_marginEnd="8dp"
                     android:layout_marginStart="8dp"
@@ -275,7 +297,7 @@
 
                 <View
                     android:id="@+id/divider2"
-                    android:layout_width="1dp"
+                    android:layout_width="4dp"
                     android:layout_height="0dp"
                     android:layout_marginBottom="8dp"
                     android:layout_marginEnd="8dp"

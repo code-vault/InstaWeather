@@ -32,6 +32,17 @@
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColorLink="@android:color/holo_blue_dark" />
 
+    <TextView
+        android:id="@+id/credit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:text="Developed By : Ayush Ojha"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textColorLink="@android:color/holo_blue_dark" />
+
+
 </android.widget.RelativeLayout>
 
 
