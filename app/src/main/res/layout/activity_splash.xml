@@ -5,21 +5,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activities.SplashActivity">
+
     <ImageView
         android:id="@+id/logo"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:layout_centerInParent="true"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="161dp"
         android:src="@drawable/iw_logo2" />
 
     <ProgressBar
         android:id="@+id/splashProgressBar"
-        android:progressDrawable="@drawable/circular_progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="115dp" />
+        android:layout_marginBottom="142dp"
+        android:progressDrawable="@drawable/circular_progress" />
 
     <TextView
         android:id="@+id/loadingText"
@@ -27,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="81dp"
+        android:layout_marginBottom="111dp"
         android:text="Fetching weather data...."
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColorLink="@android:color/holo_blue_dark" />
@@ -38,6 +41,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
+        android:layout_marginBottom="11dp"
+        android:layout_marginEnd="12dp"
         android:text="Developed By : Ayush Ojha"
         android:textAppearance="@style/TextAppearance.AppCompat"
         android:textColorLink="@android:color/holo_blue_dark" />
